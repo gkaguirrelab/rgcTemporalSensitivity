@@ -3,8 +3,20 @@ function [ttfAtEcc, rfPostRetinalByStimulus] = returnTTFAtEcc(p,stimulusDirectio
 % parameters, return the temporal transfer function at a specified set of
 % temporal frequencies
 
+% If the rgcTemporalModel variable was not passed, set to empty
+if nargin < 5
+    rgcTemporalModel = [];
+end
+
+% If the rgcTemporalModel variable is empty, load the local result
+if isempty(rgcTemporalModel)
+    modelFileName = fullfile(fileparts(mfilename('fullpath')),'rgcTemporalModel.mat');
+    load(modelFileName,'rgcTemporalModel');
+end
+
 nCells = 3;
 nStims = length(stimulusDirections);
+
 
 % The params in p are organized as:
 % - Q of 2nd-order low-pass filter
@@ -37,8 +49,9 @@ for ss=1:nStims
 
         % Get the post-retinal temporal RF
         rfPostRetinal(cc) = returnPostRetinalRF(...
-            activeCells{cc},stimulusDirections{ss},rgcTemporalModel,...
-            eccentricity,stimulusContrastScale);
+            activeCells{cc},stimulusDirections{ss},...
+            eccentricity,stimulusContrastScale,...
+            rgcTemporalModel);
 
         % Extract the corner frequency parameter for this eccentricity
         % and cell class
