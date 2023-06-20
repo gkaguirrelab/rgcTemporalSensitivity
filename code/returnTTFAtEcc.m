@@ -1,10 +1,18 @@
-function [ttfAtEcc, rfPostRetinalByStimulus] = returnTTFAtEcc(p,stimulusDirections,eccentricity,studiedFreqs,rgcTemporalModel)
+function [ttfAtEcc, rfPostRetinalByStimulus, rfRetinal] = returnTTFAtEcc(p,stimulusDirections,eccentricity,studiedFreqs,rfRetinal,rgcTemporalModel)
 % For a given visual field eccentricity and a given set of model
 % parameters, return the temporal transfer function at a specified set of
 % temporal frequencies
 
-% If the rgcTemporalModel variable was not passed, set to empty
+% If the rfRetinal symbolic variable was not passed, set a flag to indicate
+% that it must be generated
 if nargin < 5
+    rfGenFlag = true;   
+else
+    rfGenFlag = false;    
+end
+
+% If the rgcTemporalModel variable was not passed, set to empty
+if nargin < 6
     rgcTemporalModel = [];
 end
 
@@ -47,11 +55,13 @@ for ss=1:nStims
         % Get the scaling effect of stimulus contrast
         stimulusContrastScale = returnStimulusContrastScale(activeCells{cc},stimulusDirections{ss});
 
-        % Get the post-retinal temporal RF
-        rfPostRetinal(cc) = returnPostRetinalRF(...
-            activeCells{cc},stimulusDirections{ss},...
-            eccentricity,stimulusContrastScale,...
-            rgcTemporalModel);
+        % Get the retinal temporal RF if not defined
+        if rfGenFlag
+            rfRetinal(ss,cc) = returnRetinalRF(...
+                activeCells{cc},stimulusDirections{ss},...
+                eccentricity,stimulusContrastScale,...
+                rgcTemporalModel);
+        end
 
         % Extract the corner frequency parameter for this eccentricity
         % and cell class
@@ -61,7 +71,7 @@ for ss=1:nStims
         % Second order low pass filter at the level of retino-
         % geniculate synapse
         filter = stageSecondOrderLP(cornerFrequency,Q);
-        rfPostRetinal(cc) = rfPostRetinal(cc).*filter;
+        rfPostRetinal(cc) = rfRetinal(ss,cc).*filter;
 
         % Obtain the exponent for the non-linear stage
         idx = 1 + (cellIdx(cc)-1)*nCells + 2;

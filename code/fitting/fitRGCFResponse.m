@@ -33,6 +33,7 @@ end
 %% Load the flicker response data
 rgcData = loadRGCResponseData();
 
+
 %% Set model constants
 eccFields = {'e0','e20','e30'};
 % We assume that the RGC data were sampled from somewhere within these
@@ -190,6 +191,7 @@ if verboseFlag
     fprintf('cfCone: %2.2f, coneDelay: %2.2f, LMRatio: %2.2f \n',cfCone,coneDelay,LMRatio)
 end
 
+
 %% Interpolate params across eccentricity
 
 % This is the position within each RGC recording bin that the model has
@@ -199,9 +201,10 @@ for ee = 1:nEccBands
     eccDegs(ee) = eccBins{ee}(1)+squeeze(pRGC(nBlockParams,ee,1)*range(eccBins{ee}));
 end
 
-% A simple linear interpolation and extrapolation, bounded by maximum and
-% minimum returned values from the search
-myInterpObj = @(v,xq,ii) max([repmat(min(v),1,length(xq)); min([repmat(max(v),1,length(xq)); interp1(eccDegs,v,xq,'linear','extrap')])]);
+% A simple linear interpolation and extrapolation. We extend the values at
+% the lowest and highest measured eccentricity all the way to zero and 90
+% degrees
+myInterpObj = @(v,xq,ii) interp1([0 eccDegs 60 90],[v(1) v v(end) v(end)],xq,'makima');
 
 % Loop across cells
 for cc=1:nCellClasses
@@ -232,7 +235,7 @@ rgcTemporalModel.meta.eccDegs = eccDegs;
 rgcTemporalModel.meta.lbBlock = lbBlock;
 rgcTemporalModel.meta.ubBlock = ubBlock;
 
-savePath = fullfile(fileparts(fileparts(fileparts(mfilename('fullpath')))),'data','temporalModelResults','rgcTemporalModel.mat');
+savePath = fullfile(fileparts(fileparts(fileparts(mfilename('fullpath')))),'code','rgcTemporalModel.mat');
 save(savePath,'rgcTemporalModel');
 
 end

@@ -1,4 +1,4 @@
-function [rfPostRetinal, rfRGC] = returnPostRetinalRF(cellClass,stimulusDirection,eccDeg,stimulusContrastScale,rgcTemporalModel)
+function [rfRetinal, rfRGC] = returnRetinalRF(cellClass,stimulusDirection,eccDeg,stimulusContrastScale,rgcTemporalModel)
 
 
 % Examples:
@@ -7,7 +7,7 @@ function [rfPostRetinal, rfRGC] = returnPostRetinalRF(cellClass,stimulusDirectio
     stimulusDirection = 'LminusM';
     eccDeg = 5;
     stimulusContrastScale = returnStimulusContrastScale(cellClass,stimulusDirection);
-    [rfPostRetinal, rfRGC] = returnPostRetinalRF(cellClass,stimulusDirection,eccDeg,stimulusContrastScale);
+    [rfPostRetinal, rfRGC] = returnRetinalRF(cellClass,stimulusDirection,eccDeg,stimulusContrastScale);
     plotRF(rfPostRetinal);
 %}
 
@@ -39,11 +39,11 @@ rfRGC = returnRGCRF(pRGCBlock,...
     chromaticCenterWeight,chromaticSurroundWeight);
 
 % Copy the RGC model into the post-retinal variables
-rfPostRetinal = rfRGC;
+rfRetinal = rfRGC;
 
 % Apply the scaling for stimulus contrast. This converts units from spikes
 % / sec / % contrast to spikes / sec.
-rfPostRetinal = rfPostRetinal * stimulusContrastScale;
+rfRetinal = rfRetinal * stimulusContrastScale;
 
 % Drasdo 2007 equation for the midget fraction as a function of
 % eccentricity
@@ -94,7 +94,7 @@ totalRGCfDensityAtEcc = @(eccDeg) mean(cellfun(@(x) x(eccDeg),totalRGCfDensity))
 % Scale by cell density at this eccentricity, accounting for the
 % change in surface area as a function of eccentricity (eccDeg/90), and
 % the fraction of cells of each class.
-rfPostRetinal = rfPostRetinal ...
+rfRetinal = rfRetinal ...
     .* totalRGCfDensityAtEcc(eccDeg) .* (eccDeg/90) ...
     .* proportionFunc(eccDeg);
 
